@@ -37,7 +37,7 @@ const fn get_frequency(c: char) -> f32 {
 }
 
 
-fn calculate_score(text: &str) -> f32 {
+pub fn calculate_score(text: &str) -> f32 {
     let mut score = 0.0;
     let mut letter_counts = HashMap::new();
     let text_len = text.len() as f32;
@@ -57,12 +57,11 @@ fn calculate_score(text: &str) -> f32 {
     score
 }
 
-pub fn break_single_byte_xor(ciphertext: &str) -> String {
-    let bytes = hex_to_bytes(ciphertext).unwrap();
-
+pub fn best_score_single_byte_xor(ciphertext: &str) -> (String, f32) {
     let mut best_score = f32::MIN;
     let mut best_string = String::new();
 
+    let bytes = hex_to_bytes(ciphertext).unwrap();
     for codepoint in 0x20..=0x7E {
         let mut candidate = Vec::new();
         let byte = codepoint as u8;
@@ -78,7 +77,11 @@ pub fn break_single_byte_xor(ciphertext: &str) -> String {
             }
         }
     }
+    (best_string, best_score)
+}
 
+pub fn break_single_byte_xor(ciphertext: &str) -> String {
+    let (best_string, _) = best_score_single_byte_xor(ciphertext);
     best_string
 }
 
