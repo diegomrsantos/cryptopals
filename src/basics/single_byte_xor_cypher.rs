@@ -1,4 +1,4 @@
-use crate::basics::hex_to_base64::hex_to_bytes;
+use crate::basics::hex_to_base64::{ConversionError, hex_to_bytes};
 
 use std::collections::HashMap;
 
@@ -57,11 +57,11 @@ pub fn calculate_score(text: &str) -> f32 {
     score
 }
 
-pub fn best_score_single_byte_xor(ciphertext: &str) -> (String, f32) {
+pub fn best_score_single_byte_xor(hex_text: &str) -> Result<(String, f32), ConversionError> {
     let mut best_score = f32::MIN;
     let mut best_string = String::new();
 
-    let bytes = hex_to_bytes(ciphertext).unwrap();
+    let bytes = hex_to_bytes(hex_text)?;
     for codepoint in 0x20..=0x7E {
         let mut candidate = Vec::new();
         let byte = codepoint as u8;
@@ -77,12 +77,12 @@ pub fn best_score_single_byte_xor(ciphertext: &str) -> (String, f32) {
             }
         }
     }
-    (best_string, best_score)
+    Ok((best_string, best_score))
 }
 
-pub fn break_single_byte_xor(ciphertext: &str) -> String {
-    let (best_string, _) = best_score_single_byte_xor(ciphertext);
-    best_string
+pub fn break_single_byte_xor(ciphertext: &str) -> Result<String, ConversionError> {
+    let (best_string, _) = best_score_single_byte_xor(ciphertext)?;
+    Ok(best_string)
 }
 
 #[cfg(test)]
@@ -93,6 +93,6 @@ mod tests {
     fn test_single_byte_xor_cypher() {
         let encrypted = "1b37373331363f78151b7f2b783431333d78397828372d363c78373e783a393b3736";
         let decrypted = break_single_byte_xor(encrypted);
-        assert_eq!(decrypted, "Cooking MC's like a pound of bacon");
+        assert_eq!(decrypted.unwrap(), "Cooking MC's like a pound of bacon");
     }
 }
